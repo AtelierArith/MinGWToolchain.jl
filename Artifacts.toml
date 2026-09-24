@@ -1,0 +1,18 @@
+# Windows x86_64 MinGW-w64/GCC toolchain.
+#
+# Provenance:
+#   - Repacked by JuliaLang/PackageCompiler.jl
+#   - Upstream builds by niXman/mingw-builds-binaries
+#
+# Re-verify the URL, sha256 and git-tree-sha1 immediately before the first
+# release (see SPEC.md section 24).
+
+[[mingw_toolchain]]
+arch = "x86_64"
+os = "windows"
+lazy = true
+git-tree-sha1 = "b17bda08a19173572926f43a48aad5ef3d845e7c"
+
+    [[mingw_toolchain.download]]
+    sha256 = "53645e06775a55733580426341395c67dda20a664af83bcda76a1d052b618b59"
+    url = "https://github.com/JuliaLang/PackageCompiler.jl/releases/download/v2.1.24/x86_64-14.2.0-release-posix-seh-msvcrt-rt_v12-rev0.tar.gz"

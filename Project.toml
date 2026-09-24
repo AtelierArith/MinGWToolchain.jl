@@ -1,0 +1,18 @@
+name = "MinGWToolchain"
+uuid = "a7424b42-ba0b-4974-ad3a-3d309a7e3734"
+version = "0.1.0"
+authors = ["Satoshi Terasaki <terasakisatoshi.math@gmail.com>"]
+
+[deps]
+Artifacts = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
+LazyArtifacts = "4af54fe1-eca0-43a8-85a7-787d91b784e3"
+
+[compat]
+julia = "1.10"
+
+[extras]
+Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Libdl", "Test"]
