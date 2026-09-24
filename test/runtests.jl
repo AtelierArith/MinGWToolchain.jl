@@ -62,7 +62,7 @@ int main(void) {
         # MINGWTOOLCHAIN_CMAKE_GENERATOR to "mingw-makefiles" (or "both") to
         # exercise the `-G "MinGW Makefiles"` generator as well.
         function cmake_generators()
-            spec = lowercase(strip(get(ENV, "MINGWTOOLCHAIN_CMAKE_GENERATOR", "ninja")))
+            spec = lowercase(Base.strip(get(ENV, "MINGWTOOLCHAIN_CMAKE_GENERATOR", "ninja")))
             spec == "both" && return (:ninja, :mingw_makefiles)
             spec in ("mingw", "mingw-makefiles", "mingw makefiles") && return (:mingw_makefiles,)
             return (:ninja,)
