@@ -24,6 +24,10 @@ WinLibs may be simpler:
 winget install --id BrechtSanders.WinLibs.POSIX.UCRT -e
 ```
 
+The UCRT variant is the default choice; for MSVCRT use
+`BrechtSanders.WinLibs.POSIX.MSVCRT` instead. Both install `gcc`, `g++` and
+`gfortran` and expose them on the system `PATH`.
+
 `MinGWToolchain.jl` is not a replacement for WinGet or MSYS2. Its purpose is to
 treat the Windows native compiler toolchain as a **reproducible dependency of a
 Julia package**:
