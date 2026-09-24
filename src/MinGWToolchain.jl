@@ -1,3 +1,9 @@
+if Sys.iswindows()
+    # Julia's unsigned precompile DLLs can be blocked by Windows application
+    # control policies, so load this small module from source on Windows.
+    __precompile__(false)
+end
+
 module MinGWToolchain
 
 using Artifacts
