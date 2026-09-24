@@ -32,6 +32,7 @@ const SUPPORTED = Sys.iswindows() && Sys.ARCH == :x86_64
         end
     end
 
+    if SUPPORTED
         @testset "C/C++/Fortran compile and run" begin
             mktempdir() do dir
                 cd(dir) do
