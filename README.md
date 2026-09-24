@@ -85,6 +85,23 @@ duration of the block. This makes the toolchain runtime DLLs (e.g.
 `libgfortran-5.dll`, `libstdc++-6.dll`) discoverable. The environment is always
 restored, even if an exception is thrown.
 
+## Windows application-control environments
+
+On Windows 11, including Windows 11 Pro, Smart App Control or an App Control
+for Business / Code Integrity policy can block unsigned DLLs. Julia normally
+creates unsigned DLLs for package precompilation under
+`%USERPROFILE%\.julia\compiled`. Such a policy can therefore reject the
+precompiled `MinGWToolchain` cache even when the package and Julia installation
+are otherwise valid.
+
+To avoid requiring a user-side security-policy change, this package disables
+precompilation on Windows and loads its small module from source instead. This
+may slightly increase import time on Windows. The core compiler and
+shared-library tests run without external build-system dependencies.
+
+See Microsoft's documentation for [Smart App Control](https://learn.microsoft.com/en-us/windows/apps/develop/smart-app-control/overview)
+and [App Control for Business feature availability](https://learn.microsoft.com/en-us/windows/security/application-security/application-control/app-control-for-business/feature-availability).
+
 ## API
 
 - `toolchain_root()`, `bindir()`

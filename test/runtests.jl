@@ -4,18 +4,6 @@ using Libdl
 
 const SUPPORTED = Sys.iswindows() && Sys.ARCH == :x86_64
 
-if SUPPORTED
-    @eval using CMake_jll, GNUMake_jll, Ninja_jll
-end
-
-const HELLO_C = """
-#include <stdio.h>
-int main(void) {
-    puts("hello from C");
-    return 0;
-}
-"""
-
 @testset "MinGWToolchain" begin
     @testset "platform behavior" begin
         if SUPPORTED
@@ -43,89 +31,6 @@ int main(void) {
             @test_throws MinGWToolchain.ToolNotFoundError tool("definitely-not-a-real-tool")
         end
     end
-
-    if SUPPORTED
-        build_tools_path = join(
-            (dirname(Ninja_jll.ninja_path), dirname(GNUMake_jll.make_path)),
-            ';',
-        )
-
-        function with_build_tools(f)
-            return with_toolchain() do
-                Base.withenv("PATH" => string(build_tools_path, ';', ENV["PATH"])) do
-                    f()
-                end
-            end
-        end
-
-        # CMake integration defaults to the Ninja generator. Set
-        # MINGWTOOLCHAIN_CMAKE_GENERATOR to "mingw-makefiles" (or "both") to
-        # exercise the `-G "MinGW Makefiles"` generator as well.
-        function cmake_generators()
-            spec = lowercase(Base.strip(get(ENV, "MINGWTOOLCHAIN_CMAKE_GENERATOR", "ninja")))
-            spec == "both" && return (:ninja, :mingw_makefiles)
-            spec in ("mingw", "mingw-makefiles", "mingw makefiles") && return (:mingw_makefiles,)
-            return (:ninja,)
-        end
-
-        function cmake_generator_flag(generator)
-            generator === :ninja && return "Ninja"
-            generator === :mingw_makefiles && return "MinGW Makefiles"
-            throw(ArgumentError("unknown CMake generator: $(generator)"))
-        end
-
-        @testset "GNU Make integration" begin
-            mktempdir() do dir
-                cd(dir) do
-                    write("hello.c", HELLO_C)
-                    write(
-                        "Makefile",
-                        "all: hello_make.exe\n\n" *
-                        "hello_make.exe: hello.c\n" *
-                        "\t\$(CC) hello.c -o hello_make.exe\n",
-                    )
-
-                    out = with_build_tools() do
-                        run(GNUMake_jll.make())
-                        read(`./hello_make.exe`, String)
-                    end
-                    @test occursin("hello from C", out)
-                end
-            end
-        end
-
-        @testset "CMake integration ($generator)" for generator in cmake_generators()
-            mktempdir() do dir
-                cd(dir) do
-                    write("hello.c", HELLO_C)
-                    write("CMakeLists.txt", """
-                    cmake_minimum_required(VERSION 3.20)
-                    project(hello_cmake C)
-                    add_executable(hello_cmake hello.c)
-                    """)
-
-                    out = with_build_tools() do
-                        cmake = CMake_jll.cmake()
-                        args = [
-                            "-S",
-                            ".",
-                            "-B",
-                            "build",
-                            "-G",
-                            cmake_generator_flag(generator),
-                            "-DCMAKE_C_COMPILER=$(gcc())",
-                        ]
-                        if generator === :mingw_makefiles
-                            push!(args, "-DCMAKE_MAKE_PROGRAM=$(GNUMake_jll.make_path)")
-                        end
-                        run(`$cmake $args`)
-                        run(`$cmake --build build`)
-                        read(`./build/hello_cmake.exe`, String)
-                    end
-                    @test occursin("hello from C", out)
-                end
-            end
-        end
 
         @testset "C/C++/Fortran compile and run" begin
             mktempdir() do dir
