@@ -15,6 +15,35 @@ Supported platform:
 
 All other platforms raise `MinGWToolchain.UnsupportedPlatformError`.
 
+## Relationship to WinGet and MSYS2
+
+If you only need a system-wide GCC/GFortran installation on Windows, WinGet /
+WinLibs may be simpler:
+
+```powershell
+winget install --id BrechtSanders.WinLibs.POSIX.UCRT -e
+```
+
+`MinGWToolchain.jl` is not a replacement for WinGet or MSYS2. Its purpose is to
+treat the Windows native compiler toolchain as a **reproducible dependency of a
+Julia package**:
+
+- works without WinGet
+- no system-wide installation and no permanent `PATH` changes
+- compiler version pinned by artifact metadata and hashes
+- the same toolchain across CI and user environments
+- compiler paths discoverable programmatically
+
+| Approach | Primary use |
+|---|---|
+| WinGet + WinLibs | set up a human developer environment on Windows |
+| MinGWToolchain.jl + Artifacts | a Julia package acquires and uses a compiler reproducibly |
+| MSYS2 | a Unix-like shell plus a broad set of development packages |
+
+`MinGWToolchain.jl` exists not to install MinGW on Windows, but to make a
+Windows native compiler toolchain usable as a reproducible dependency inside the
+Julia package ecosystem.
+
 ## Install
 
 ```julia
