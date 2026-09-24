@@ -195,6 +195,31 @@ int main(void) {
             end
         end
 
+        @testset "C shared library + ccall" begin
+            mktempdir() do dir
+                cd(dir) do
+                    write("add_one_c.c", """
+                    double add_one_c(double x) {
+                        return x + 1.0;
+                    }
+                    """)
+
+                    with_toolchain() do
+                        run(`$(gcc()) -shared -Wl,--export-all-symbols add_one_c.c -o add_one_c.dll`)
+                        @test isfile(joinpath(dir, "add_one_c.dll"))
+
+                        handle = Libdl.dlopen(joinpath(dir, "add_one_c.dll"))
+                        try
+                            fptr = Libdl.dlsym(handle, :add_one_c)
+                            @test ccall(fptr, Cdouble, (Cdouble,), 41.0) == 42.0
+                        finally
+                            Libdl.dlclose(handle)
+                        end
+                    end
+                end
+            end
+        end
+
         @testset "with_toolchain environment" begin
             old_path = get(ENV, "PATH", nothing)
             had_cc = haskey(ENV, "CC")
