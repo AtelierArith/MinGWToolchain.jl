@@ -217,8 +217,8 @@ windres() = tool("windres")
 Return the GCC version reported by the toolchain, e.g. `v"14.2.0"`.
 """
 function toolchain_version()
-    s = strip(read(`$(gcc()) -dumpfullversion`, String))
-    isempty(s) && (s = strip(read(`$(gcc()) -dumpversion`, String)))
+    s = Base.strip(read(`$(gcc()) -dumpfullversion`, String))
+    isempty(s) && (s = Base.strip(read(`$(gcc()) -dumpversion`, String)))
     return VersionNumber(s)
 end
 
