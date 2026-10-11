@@ -4,6 +4,36 @@ using Libdl
 
 const SUPPORTED = Sys.iswindows() && Sys.ARCH == :x86_64
 
+function _find_libexec(name::AbstractString)
+    root = joinpath(toolchain_root(), "libexec")
+    isdir(root) || return nothing
+    for (dir, _, files) in walkdir(root)
+        name in files && return joinpath(dir, name)
+    end
+    return nothing
+end
+
+function _can_spawn(exe::AbstractString)
+    try
+        run(pipeline(Cmd(`$exe --version`; ignorestatus=true); stdout=devnull, stderr=devnull))
+        return true
+    catch
+        return false
+    end
+end
+
+function _run_compiled(exe::AbstractString, needle::AbstractString)
+    @test isfile(exe)
+    output = try
+        read(`./$exe`, String)
+    catch e
+        e isa Base.IOError || rethrow()
+        @test_skip "$exe could not be spawned (Application Control)"
+        return
+    end
+    @test occursin(needle, output)
+end
+
 @testset "MinGWToolchain" begin
     @testset "platform behavior" begin
         if SUPPORTED
@@ -15,8 +45,10 @@ const SUPPORTED = Sys.iswindows() && Sys.ARCH == :x86_64
             @test is_available("gcc")
             @test is_available("windres")
             @test toolchain_version() >= v"14"
-            @test tool("gcc") == gcc()
-            @test tool("gcc.exe") == gcc()
+            @test tool("gcc") == joinpath(bindir(), "gcc.exe")
+            @test tool("gcc.exe") == tool("gcc")
+            @test gcc() == tool("x86_64-w64-mingw32-gcc") || gcc() == tool("gcc")
+            @test gxx() == tool("x86_64-w64-mingw32-g++") || gxx() == tool("g++")
         else
             @test_throws MinGWToolchain.UnsupportedPlatformError toolchain_root()
             @test_throws MinGWToolchain.UnsupportedPlatformError bindir()
@@ -60,13 +92,20 @@ const SUPPORTED = Sys.iswindows() && Sys.ARCH == :x86_64
 
                     with_toolchain() do
                         run(`$(gcc()) hello.c -o hello_c.exe`)
-                        @test occursin("hello from C", read(`./hello_c.exe`, String))
+                        _run_compiled("hello_c.exe", "hello from C")
 
-                        run(`$(gxx()) hello.cpp -o hello_cpp.exe`)
-                        @test occursin("hello from C++", read(`./hello_cpp.exe`, String))
+                        # Application Control policies may block cc1plus.exe by
+                        # filename even when the g++ driver itself is runnable.
+                        cc1plus = _find_libexec("cc1plus.exe")
+                        if cc1plus !== nothing && _can_spawn(cc1plus)
+                            run(`$(gxx()) hello.cpp -o hello_cpp.exe`)
+                            _run_compiled("hello_cpp.exe", "hello from C++")
+                        else
+                            @test_skip "C++ frontend (cc1plus.exe) is blocked by Application Control"
+                        end
 
                         run(`$(gfortran()) hello.f90 -o hello_fortran.exe`)
-                        @test occursin("hello from Fortran", read(`./hello_fortran.exe`, String))
+                        _run_compiled("hello_fortran.exe", "hello from Fortran")
                     end
                 end
             end

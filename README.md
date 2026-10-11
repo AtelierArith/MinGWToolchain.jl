@@ -94,10 +94,32 @@ creates unsigned DLLs for package precompilation under
 precompiled `MinGWToolchain` cache even when the package and Julia installation
 are otherwise valid.
 
+The same class of policy may also block the short compiler names `gcc.exe` and
+`g++.exe` by filename, and the C++ frontend `cc1plus.exe`. `gcc()`, `gxx()` and
+`gfortran()` therefore prefer the target-triple prefixed drivers
+(`x86_64-w64-mingw32-gcc.exe` and friends), which are the same binaries.
+
 To avoid requiring a user-side security-policy change, this package disables
 precompilation on Windows and loads its small module from source instead. This
 may slightly increase import time on Windows. The core compiler and
 shared-library tests run without external build-system dependencies.
+
+### If you see a Smart App Control notification
+
+Smart App Control has no per-folder or per-app allow list. If Windows shows a
+notification that Smart App Control blocked `gcc.exe`, `g++.exe`,
+`cc1plus.exe`, or a program you just compiled, turn Smart App Control off:
+
+1. Open **Windows Security**
+2. Go to **App & browser control**
+3. Open **Smart App Control settings**
+4. Set Smart App Control to **Off**
+
+Then retry the compile, or run `Pkg.test()` again.
+
+This is a device-wide switch. Defender folder exclusions do not affect Smart
+App Control. After you turn it off, turning it back on may require a Windows
+reset.
 
 See Microsoft's documentation for [Smart App Control](https://learn.microsoft.com/en-us/windows/apps/develop/smart-app-control/overview)
 and [App Control for Business feature availability](https://learn.microsoft.com/en-us/windows/security/application-security/application-control/app-control-for-business/feature-availability).
