@@ -259,8 +259,8 @@ executables. The environment is restored when `f` returns, even on error.
 
 ```julia
 with_toolchain() do
-    run(`$(gcc()) --version`)
-    run(`$(gfortran()) hello.f90 -o hello.exe`)
+    run(`\$(gcc()) --version`)
+    run(`\$(gfortran()) hello.f90 -o hello.exe`)
 end
 ```
 """
